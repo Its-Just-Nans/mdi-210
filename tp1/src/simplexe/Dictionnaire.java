@@ -97,11 +97,13 @@ public class Dictionnaire extends Observable {
 	 */
 	public boolean estRealisable() {
 		// Deux lignes suivantes a supprimer
-		Simplexe.sortie.println("Methode estRealisable a ecrire");
-		incomplet = true;
-
+		for (int i = 1; i <= this.nbVarBase; i++) {
+			if (this.D[i][0] < 0) {
+				return false;
+			}
+		}
 		// A modifier
-		return false;
+		return true;
 	}
 
 	/**
@@ -128,10 +130,12 @@ public class Dictionnaire extends Observable {
 	 *         sinon, renvoie la valeur 0
 	 */
 	public int chercherPremierIndiceVariableEntrante() {
-		// Deux lignes suivantes a supprimer
-		Simplexe.sortie.println("Methode chercherPremierIndiceVariableEntrante a ecrire");
-		incomplet = true;
 
+		for (int i = 1; i <= this.nbVarHorsBase; i++) {
+			if (this.D[0][i] > 0) {
+				return i;
+			}
+		}
 		// A modifier
 		return 0;
 	}
@@ -152,13 +156,17 @@ public class Dictionnaire extends Observable {
 	 *         la matrice D correspondant a la variable sortante.
 	 */
 	public int chercherIndiceVariableSortante(int jE) {
-		// Trois lignes suivantes a supprimer
-		Simplexe.sortie.println("\nLa variable entrante : x" + this.tabVarHorsBase[jE]);
-		Simplexe.sortie.println("Methode chercherIndiceVariableSortante a ecrire");
-		incomplet = true;
+		double tempMin = Double.MAX_VALUE;
+		int indice = 0;
+		for (int i = 1; i <= this.nbVarBase; i++) {
+			double valeurTemp = -this.D[i][0] / this.D[i][jE];
+			if (valeurTemp < tempMin && this.D[i][jE] < 0) {
+				tempMin = valeurTemp;
+				indice = i;
+			}
 
-		// A modifier
-		return 0;
+		}
+		return indice;
 	}
 
 	/**
@@ -209,9 +217,51 @@ public class Dictionnaire extends Observable {
 	 * 12 0,2 -2,4
 	 */
 	public void pivoter(int iS, int jE) {
-		// Deux lignes suivantes a supprimer
-		Simplexe.sortie.println("Methode pivoter a ecrire");
-		incomplet = true;
+		double varPivot = this.D[iS][jE];
+		for (int j = 0; j <= this.nbVarHorsBase; j++) {
+			if (j == jE) {
+				D[iS][jE] = 1 / varPivot;
+			} else {
+				D[iS][j] /= -varPivot;
+			}
+		}
+		for (int i = 0; i <= this.nbVarBase; i++) {
+			if (i != iS) {
+				// on save
+				double varLigne = D[i][jE];
+				for (int j = 0; j <= this.nbVarHorsBase; j++) {
+					if (j != jE) {
+						this.D[i][j] += this.D[iS][j] * varLigne;
+					} else {
+						this.D[i][j] /= varPivot;
+					}
+				}
+			}
+		}
+		int horsBase = this.tabVarHorsBase[jE];
+		int inBase = this.tabVarBase[iS];
+		this.tabVarHorsBase[jE] = inBase;
+		this.tabVarBase[iS] = horsBase;
+		this.printVars();
+	}
+
+	public void printVars() {
+		// print tabVarHorsBase
+		for (int i = 0; i <= this.nbVarBase; i++) {
+			System.out.print(this.tabVarBase[i] + ",");
+		}
+		for (int i = 0; i <= this.nbVarHorsBase; i++) {
+			System.out.print(this.tabVarHorsBase[i] + ",");
+		}
+		System.out.println();
+		// print D
+		System.out.println("---------");
+		for (int i = 0; i <= this.nbVarBase; i++) {
+			for (int j = 0; j <= this.nbVarHorsBase; j++) {
+				System.out.print(D[i][j] + " ");
+			}
+			System.out.println();
+		}
 	}
 
 	/**

@@ -63,15 +63,14 @@ public class Simplexe implements Runnable {
 		}
 	}
 
-	public Dictionnaire choixDico() throws IOException {
-		File fichier = null;
-
-		JFileChooser dialogue = new JFileChooser(new File(cheminDonnees));
-		if (dialogue.showOpenDialog(null)== JFileChooser.APPROVE_OPTION) {
-			fichier = dialogue.getSelectedFile();
+	public Dictionnaire choixDico(File fichier) throws IOException {
+		if(fichier == null){
+			JFileChooser dialogue = new JFileChooser(new File(cheminDonnees));
+			if (dialogue.showOpenDialog(null)== JFileChooser.APPROVE_OPTION) {
+				fichier = dialogue.getSelectedFile();
+			}
+			else sortie.println("Pas de choix");
 		}
-		else sortie.println("Pas de choix");
-
 		dico = new Dictionnaire(fichier);
 		sortie.println("Le fichier traite est : " + fichier.getName() + "\n");
 		dico.setBland(controleur.scenario.bland.isSelected());

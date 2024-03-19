@@ -35,7 +35,7 @@ public class ControleurScenario extends WindowAdapter
 		if (source == scenario.boutonRecommencer) {
 			try {
 				Simplexe.sortie.setText("");
-				simplexe.choixDico();
+				simplexe.choixDico(null);
 				scenario.autoriserBoutons();
 				nbDecision = simplexe.getDico().getNbHorsBase();
 			}
