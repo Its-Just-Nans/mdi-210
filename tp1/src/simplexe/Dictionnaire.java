@@ -280,11 +280,17 @@ public class Dictionnaire extends Observable {
 	 *         sinon, renvoie la valeur 0
 	 */
 	public int chercherIndiceVariableEntrantePlusGrandCoeff() {
-		// Deux lignes a supprimer
-		Simplexe.sortie.println("Methode chercherIndiceVariableEntranteGrandCoeff a ecrire");
-		incomplet = true;
-
-		// A modifier
+		double min = 0;
+		int indMin = 0;
+		for (int j = 1; j < this.nbVarHorsBase + 1; j++) {
+			if (this.D[0][j] > min) {
+				min = this.D[0][j];
+				indMin = j;
+			}
+		}
+		if (min != 0) {
+			return indMin;
+		}
 		return 0;
 	}
 
@@ -305,12 +311,24 @@ public class Dictionnaire extends Observable {
 	 *         dans le prochain dictionnaire.
 	 */
 	public int chercherIndiceVariableEntranteAvantageuse() {
-		// Deux lignes a supprimer
-		Simplexe.sortie.println("Methode chercherIndiceVariableEntranteAvantageuse a ecrire");
-		incomplet = true;
-
-		// A modifier
-		return 0;
+		double max = Double.MIN_VALUE;
+		int indice = 0;
+		for (int j = 1; j <= this.nbVarHorsBase; j++) {
+			int i = chercherIndiceVariableSortante(j);
+			double mini = -this.D[i][0] / this.D[i][j];
+			double amelioration = this.D[0][j] * mini;
+			if (amelioration > max) {
+				max = amelioration;
+				indice = j;
+			}
+		}
+		if (max == Double.MIN_VALUE) {
+			return 0;
+		}
+		if (max == Double.POSITIVE_INFINITY) {
+			return -1;
+		}
+		return indice;
 	}
 
 	/**
@@ -329,12 +347,19 @@ public class Dictionnaire extends Observable {
 	 *         Sinon, renvoie la valeur 0.
 	 */
 	public int chercherIndiceVariableEntrantePlusPetitNumero() {
-		// Deux lignes a supprimer
-		Simplexe.sortie.println("Methode chercherIndiceVariableEntrantePlusPetitNumero a ecrire");
-		incomplet = true;
+		int plusPetitNumero = Integer.MAX_VALUE;
+		int indicePlusPetit = 0;
 
-		// A modifier
-		return 0;
+		for (int j = 1; j <= nbVarHorsBase; j++) {
+			if (this.D[0][j] > epsilon && tabVarHorsBase[j] < plusPetitNumero) {
+				indicePlusPetit = j;
+				plusPetitNumero = tabVarHorsBase[j];
+			}
+		}
+		if (plusPetitNumero == Integer.MAX_VALUE) {
+			return 0;
+		}
+		return indicePlusPetit;
 	}
 
 	/**
@@ -354,13 +379,22 @@ public class Dictionnaire extends Observable {
 	 *         sinon, renvoie l'indice de la variable sortante.
 	 */
 	public int chercherIndiceVariableSortantePlusPetitNumero(int jE) {
-		// Deux lignes a supprimer
-		Simplexe.sortie.println("Methode chercherIndiceVariableSortantePlusPetitNumero a ecrire");
-		incomplet = true;
+		double minRatio = Double.MAX_VALUE;
+		int indiceSortante = 0;
 
-		// A modifier
-		return 0;
-
+		for (int i = 1; i <= nbVarBase; i++) {
+			if (this.D[i][jE] < 0) {
+				double ratio = -this.D[i][0] / this.D[i][jE];
+				if (ratio < minRatio || (ratio == minRatio && tabVarBase[i] < tabVarBase[indiceSortante])) {
+					minRatio = ratio;
+					indiceSortante = i;
+				}
+			}
+		}
+		if (minRatio == Double.MAX_VALUE) {
+			return -1;
+		}
+		return indiceSortante;
 	}
 	// FIN DES METHODES A COMPLETER
 

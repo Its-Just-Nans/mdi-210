@@ -65,7 +65,12 @@ public class Simplexe implements Runnable {
 
 	public Dictionnaire choixDico(File fichier) throws IOException {
 		if(fichier == null){
-			JFileChooser dialogue = new JFileChooser(new File(cheminDonnees));
+			String chemin = cheminDonnees;
+			String pbs = System.getenv("PATH_TO_PBS");
+			if (pbs != null){
+				chemin = pbs;
+			}
+			JFileChooser dialogue = new JFileChooser(new File(chemin));
 			if (dialogue.showOpenDialog(null)== JFileChooser.APPROVE_OPTION) {
 				fichier = dialogue.getSelectedFile();
 			}
