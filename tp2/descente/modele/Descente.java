@@ -102,10 +102,15 @@ public class Descente extends Observable implements Runnable  {
 	 * @see #seuil
 	 */
 	private void directionASuivreSiInterieur() {
+		Couple gradient = this.pb.gradientf(this.P);
+		if (gradient.norme() < this.seuil) {
+			this.finie = true;
+		} else {
+			this.direction = gradient.mult(-1.0D / gradient.norme());
+		}
 	}
 
 	/***********************************************************
-	 * METHODE A IMPLEMENTER 
 	 * Recherche la prochaine direction a suivre lorsque le point courant P
 	 * est sur un bord du domaine mais pas dans un coin.
 	 * Si la descente n'est pas finie, met la prochaine direction dans l'attribut this.direction  
@@ -124,10 +129,26 @@ public class Descente extends Observable implements Runnable  {
 	 * @param c la contrainte saturee par le point courant P
 	 */
 	private void directionASuivreSiBord(Contrainte c) {
+		Couple gradient = this.pb.gradientf(this.P);
+		if (gradient.norme() < this.seuil) {
+			this.finie = true;
+			return;
+		}
+		if (gradient.produitScalaire(c.getGradient()) > 0.0D) {
+			this.direction = gradient.mult(-1.0D / gradient.norme());
+			return;
+		}
+		Couple d = c.getVecteurUnitaireBord();
+		if (gradient.estPerpendiculaire(d))
+			this.finie = true;
+		if (gradient.produitScalaire(d) > 0.0D) {
+			this.direction = d.mult(-1.0D);
+		} else {
+			this.direction = d;
+		}
 	}
-	
+
 	/*************************************************************
-	 * METHODE A IMPLEMENTER 
 	 * Recherche la prochaine direction a suivre lorsque le point courant P
 	 * est dans un coin du domaine.
 	 * Si la descente n'est pas finie, met la prochaine direction dans l'attribut this.direction  
@@ -145,10 +166,42 @@ public class Descente extends Observable implements Runnable  {
 	 * @param coin un tableau a deux cases pour les deux contraintes saturees par le point courant P
 	 */
 	private void directionASuivreSiCoin(Contrainte[] coin) {
+		Couple gradient = this.pb.gradientf(this.P);
+		if (gradient.norme() < this.seuil) {
+			this.finie = true;
+			return;
+		}
+		Contrainte c1 = coin[0];
+		Contrainte c2 = coin[1];
+		Couple u1 = c1.getVecteurUnitaireBord();
+		if (u1.produitScalaire(c2.getGradient()) > 0.0D)
+			u1 = u1.mult(-1.0D);
+		Couple u2 = c2.getVecteurUnitaireBord();
+		if (u2.produitScalaire(c1.getGradient()) > 0.0D)
+			u2 = u2.mult(-1.0D);
+		Couple n1 = c1.getGradient().mult(-1.0D);
+		Couple n2 = c2.getGradient().mult(-1.0D);
+		Couple decomp = Couple.decompose(gradient, n1, n2);
+		if (n1.produitScalaire(gradient) <= 0.0D && n2.produitScalaire(gradient) <= 0.0D)
+			this.direction = gradient.mult(-1.0D / gradient.norme());
+		if(decomp.x > 0 && decomp.y > 0){
+			this.finie = true;
+			return;
+		}
+		double p1 = u1.produitScalaire(gradient);
+		double p2 = u2.produitScalaire(gradient);
+		if (p1 >= 0.0D && p2 >= 0.0D) {
+			this.finie = true;
+			return;
+		}
+		if (p1 < p2) {
+			this.direction = u1;
+		} else {
+			this.direction = u2;
+		}
 	}
-	
+
 	/******************************************************
-	 * METHODE A IMPLEMENTER 
 	 * On considere une demi-droite parametree par t -> pointDepart + t.dir (t >= 0) ;
 	 * on pose phi(t) = f(pointDepart + t.dir) ; on suppose que l'on a phi'(0) < 0 ; 
 	 * on cherche un point P = pointDepart + t.dir, t > 0, avec phi'(t) > 0. 
