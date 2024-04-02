@@ -90,7 +90,6 @@ public class Descente extends Observable implements Runnable  {
 
 
 	/**************************************************************
-	 * METHODE A IMPLEMENTER 
 	 * Recherche la prochaine direction a suivre lorsque le point courant P
 	 * est dans l'interieur strict du domaine.
 	 * Si la descente n'est pas finie, met la prochaine direction dans l'attribut this.direction  
@@ -215,14 +214,16 @@ public class Descente extends Observable implements Runnable  {
 	 *         <br>sinon la methode retourne une valeur de t avec phi'(t) > 0.
 	 */
 	public double chercheSecondPoint(Couple pointDepart, Couple dir) {
-		// La valeur de retour est a  modifier
-		System.out.println("Methode chercherSecondPoint a implementer");
-		System.exit(0);
-		return 0;
+		double t = 1.0D;
+		while (this.pb.phiDerivee(pointDepart, dir, t) <= 0.0D) {
+			if (t > Double.MAX_VALUE / 2)
+				return -1.0D;
+			t *= 2.0D;
+		}
+		return t;
 	}
 	
 	/***************************************************** 
-	 * METHODE A IMPLEMENTER
 	 * On considere une demi-droite parametree par  t -> pointDepart + t.dir (t >= 0) ;  
 	 * On pose phi(t) = f(pointDepart + t.dir) ; on suppose que l'on a phi'(0) < 0 et phi'(t1) > 0 ; 
 	 * On cherche un point P = pointDepart + t * dir 
@@ -241,12 +242,22 @@ public class Descente extends Observable implements Runnable  {
 	 * @return le point P = pointDepart + t * dir tel que phi'(t) = 0 (ou presque). 
      */
 	public Couple dichotomie(Couple pointDepart, Couple dir, double t1) {		
-		// La valeur de retour est a modifier		
-		return pointDepart;
+        double derivee;
+		double t = 0.0D;
+        double t0 = 0.0D;
+        do {
+            t = (t0 + t1) / 2.0D;
+            derivee = this.pb.phiDerivee(pointDepart, dir, t);
+            if (derivee > 0.0D) {
+                t1 = t;
+            } else {
+                t0 = t;
+            }
+        } while (!estNul(derivee));
+        return pointDepart.ajoute(dir.mult(t));
 	}
 	
 	/*************************************************
-	 * METHODE A IMPLEMENTER
 	 * Verifie qu'il s'agit bien d'un minimum en utilisant la condition de Karush, Kuhn et Tucker 
 	 * @param P	Le point ou on verifie qu'il s'agit d'un minimum.
 	 * @see Domaine#estCoin(Couple)
@@ -265,9 +276,37 @@ public class Descente extends Observable implements Runnable  {
 	 * 					<br>- (0, 0) si P est a l'interieur
 	 */
 	public Couple KarushKuhnTucker(Couple P) {
-		Couple lambda = null;
-
-		return  lambda;
+        Contrainte[] coin = this.domaine.estCoin(this.P);
+        Couple mu = new Couple(0.0D, 0.0D);
+        Couple gradient = this.pb.gradientf(P);
+        if (coin != null) {
+            Contrainte c1 = coin[0];
+            Contrainte c2 = coin[1];
+            Couple gradient1 = c1.getGradient();
+            Couple gradient2 = c2.getGradient();
+            mu = Couple.decompose(gradient, gradient1, gradient2);
+            if (gradient.norme() < this.seuil)
+                return mu;
+            if (mu.x > 0.0D || mu.y > 0.0D)
+                return null;
+            mu.x = -mu.x;
+            mu.y = -mu.y;
+        } else {
+            Contrainte c = this.domaine.estSurBord(P);
+            if (c != null) {
+                mu.x = gradient.produitScalaire(c.getGradient());
+                if (gradient.norme() < this.seuil)
+                    return mu;
+                if (mu.x > 0.0D)
+                    return null;
+                if (!c.getVecteurUnitaireBord().estPerpendiculaire(gradient))
+                    return null;
+                mu.x = -mu.x;
+            } else if (gradient.norme() > this.seuil) {
+                return null;
+            }
+        }
+        return mu;
 	}
 	
 	/**
